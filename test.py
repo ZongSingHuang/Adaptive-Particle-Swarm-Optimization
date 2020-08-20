@@ -97,9 +97,10 @@ d = 30
 g = 3000
 p = 20
 times = 30
-table = np.zeros((4, 11))
+table = np.zeros((5, 11))
 table[2, :] = -np.ones(11)*np.inf
 table[3, :] = np.ones(11)*np.inf
+ALL = np.zeros((times, 11))
 for i in range(times):
     x_max = 100*np.ones(d)
     x_min = -100*np.ones(d)
@@ -112,6 +113,7 @@ for i in range(times):
     if optimizer.gBest_score<table[3, 0]: table[3, 0] = optimizer.gBest_score
     table[0, 0] += optimizer.gBest_score
     table[1, 0] += end - start 
+    ALL[i, 0] = optimizer.gBest_score
 
 
     x_max = 10*np.ones(d)
@@ -125,6 +127,7 @@ for i in range(times):
     if optimizer.gBest_score<table[3, 1]: table[3, 1] = optimizer.gBest_score
     table[0, 1] += optimizer.gBest_score
     table[1, 1] += end - start  
+    ALL[i, 1] = optimizer.gBest_score
 
     
     x_max = 100*np.ones(d)
@@ -138,6 +141,7 @@ for i in range(times):
     if optimizer.gBest_score<table[3, 2]: table[3, 2] = optimizer.gBest_score
     table[0, 2] += optimizer.gBest_score
     table[1, 2] += end - start
+    ALL[i, 2] = optimizer.gBest_score
   
  
     x_max = 10*np.ones(d)
@@ -151,6 +155,7 @@ for i in range(times):
     if optimizer.gBest_score<table[3, 3]: table[3, 3] = optimizer.gBest_score  
     table[0, 3] += optimizer.gBest_score
     table[1, 3] += end - start   
+    ALL[i, 3] = optimizer.gBest_score
 
    
     x_max = 100*np.ones(d)
@@ -164,6 +169,7 @@ for i in range(times):
     if optimizer.gBest_score<table[3, 4]: table[3, 4] = optimizer.gBest_score  
     table[0, 4] += optimizer.gBest_score
     table[1, 4] += end - start
+    ALL[i, 4] = optimizer.gBest_score
   
   
     x_max = 1.28*np.ones(d)
@@ -177,6 +183,7 @@ for i in range(times):
     if optimizer.gBest_score<table[3, 5]: table[3, 5] = optimizer.gBest_score   
     table[0, 5] += optimizer.gBest_score
     table[1, 5] += end - start
+    ALL[i, 5] = optimizer.gBest_score
  
  
     x_max = 500*np.ones(d)
@@ -190,6 +197,7 @@ for i in range(times):
     if optimizer.gBest_score<table[3, 6]: table[3, 6] = optimizer.gBest_score   
     table[0, 6] += optimizer.gBest_score
     table[1, 6] += end - start
+    ALL[i, 6] = optimizer.gBest_score
   
 
     x_max = 5.12*np.ones(d)
@@ -203,6 +211,7 @@ for i in range(times):
     if optimizer.gBest_score<table[3, 7]: table[3, 7] = optimizer.gBest_score   
     table[0, 7] += optimizer.gBest_score
     table[1, 7] += end - start  
+    ALL[i, 7] = optimizer.gBest_score
 
 
     x_max = 5.12*np.ones(d)
@@ -216,6 +225,7 @@ for i in range(times):
     if optimizer.gBest_score<table[3, 8]: table[3, 8] = optimizer.gBest_score  
     table[0, 8] += optimizer.gBest_score
     table[1, 8] += end - start
+    ALL[i, 8] = optimizer.gBest_score
   
  
     x_max = 32*np.ones(d)
@@ -229,6 +239,7 @@ for i in range(times):
     if optimizer.gBest_score<table[3, 9]: table[3, 9] = optimizer.gBest_score  
     table[0, 9] += optimizer.gBest_score
     table[1, 9] += end - start
+    ALL[i, 9] = optimizer.gBest_score
    
  
     x_max = 600*np.ones(d)
@@ -242,12 +253,14 @@ for i in range(times):
     if optimizer.gBest_score<table[3, 10]: table[3, 10] = optimizer.gBest_score  
     table[0, 10] += optimizer.gBest_score
     table[1, 10] += end - start  
+    ALL[i, 10] = optimizer.gBest_score
     
     print(i+1)
     
     
 table[:2, :] = table[:2, :] / times
+table[4, :] = np.std(ALL, axis=0)
 table = pd.DataFrame(table)
 table.columns=['Sphere', 'Schwefel_P222', 'Quadric', 'Rosenbrock', 'Step', 'Quadric_Noise', 'Schwefel', 
                 'Rastrigin', 'Noncontinuous_Rastrigin', 'Ackley', 'Griewank']
-table.index = ['mean score', 'mean time', 'worst', 'best']
+table.index = ['avg', 'time', 'worst', 'best', 'std']
