@@ -50,10 +50,15 @@ def Rosenbrock(x):
     
     return np.sum(100*(right - left**2)**2 + (left-1)**2, axis=1)
 
+# def Step(x):
+#     if x.ndim==1:
+#         x = x.reshape(1, -1)
+#     return np.sum(np.round((x+0.5), 0)**2, axis=1)
+
 def Step(x):
     if x.ndim==1:
         x = x.reshape(1, -1)
-    return np.sum(np.round((x+0.5), 0)**2, axis=1)
+    return np.sum((x+0.5)**2, axis=1)
 
 def Quadric_Noise(x):
     if x.ndim==1:
@@ -65,15 +70,15 @@ def Quadric_Noise(x):
 
 def Schwefel(x):
     if x.ndim==1:
-        x = x.reshape(1, -1)        
+        x = x.reshape(1, -1)
      
     return -1*np.sum(x*np.sin(np.abs(x)**.5), axis=1)
 
 def Rastrigin(x):
     if x.ndim==1:
-        x = x.reshape(1, -1) 
+        x = x.reshape(1, -1)
     
-    return np.sum(x**2 - 10*np.cos(2*np.pi*x) + 10, axis=1)
+    return np.sum(x**2 - 10*np.cos(2*np.pi*x), axis=1) + 10*x.shape[1]
 
 # def Noncontinuous_Rastrigin(x):
 #     if x.ndim==1:
@@ -104,40 +109,33 @@ def Generalized_Penalized01(x):
     if x.ndim==1:
         x = x.reshape(1, -1)
     
-    y_head = 1 + (x[:, 0]+1)/4
-    y_tail = 1 + (x[:, -1]+1)/4
-    y_left = 1 + (x[:, :-1]+1)/4
-    y_right = 1 + (x[:, 1:]+1)/4
+    y1 = 1 + (x[:, 0]+1)/4
+    yi = 1 + (x[:, :-1]+1)/4
+    yi_1 = 1 + (x[:, 1:]+1)/4
+    yn = 1 + (x[:, -1]+1)/4
     
-    first = np.pi/x.shape[1]
-    second = 10*np.sin(np.pi*y_head)**2
-    third = np.sum( ((y_left-1)**2) * (1+10*np.sin(np.pi*y_right)**2), axis=1)
-    fourth = (y_tail-1)**2
-    five = np.sum(u_xakm(x, 10, 100, 4), axis=1)
-
-    fitness = first*(second + third + fourth) + five
-    
-    return fitness
+    return np.pi/x.shape[1] * \
+                              ( 
+                                10*np.sin(np.pi*y1)**2 + 
+                                np.sum( (yi-1)**2 * (1+10*np.sin(np.pi*yi_1)**2), axis=1) +
+                                (yn-1)**2
+                              ) \
+                            + u_xakm(x, 10, 100, 4)
 
 def Generalized_Penalized02(x):
     if x.ndim==1:
         x = x.reshape(1, -1)
     
-    x_head = x[:, 0]
-    x_tail = x[:, -1]
-    x_left = x[:, :-1]
-    x_right = x[:, 1:]
-       
-    first = 0.1
-    second = np.sin(3*np.pi*x_head)**2 + (x_tail-1)**2
-    third = np.sum( (x_left-1)**2 * (1+np.sin(3*np.pi*x_right)**2), axis=1)
-    fourth = np.sum(u_xakm(x, 5, 100, 4), axis=1)
-
-    fitness = first*(second + third) + fourth
-    
-    return fitness
+    return 0.1 * \
+                 ( 
+                   np.sin(3*np.pi*x[:, 0])**2 +
+                   np.sum((x[:, :-1]-1)**2*(1+np.sin(3*np.pi*x[:, 1:])**2), axis=1) +
+                   (x[:, -1]-1)**2*(1+np.sin(2*np.pi*x[:, -1])**2)
+                  ) \
+               + u_xakm(x, 5, 100, 4)
 
 def DE_JONG_N5(x):
+# Shekel's Foxholes
     if x.ndim==1:
         x = x.reshape(1, -1)
         
@@ -188,7 +186,7 @@ def Six_Hump_Camel(x):
         
     return 4*(x[:, 0]**2)-2.1*(x[:, 0]**4)+(x[:, 0]**6)/3+x[:, 0]*x[:, 1]-4*(x[:, 1]**2)+4*(x[:, 1]**4)
 
-def Brain(x):
+def Branin(x):
     if x.ndim==1:
         x = x.reshape(1, -1)
         
@@ -252,6 +250,30 @@ def Hartmann_6D(x):
     return fitness
 
 def Shekel_m5(x):
+    return Shekel(x, m=5)
+
+
+def Shekel_m7(x):
+    return Shekel(x, m=7)
+
+def Shekel_m10(x):
+    return Shekel(x, m=10)
+
+def u_xakm(x, a, k, m):
+    if x.ndim==1:
+        x = x.reshape(1, -1)
+    temp = x.copy()    
+    
+    case1 = x>a
+    case3 = x<-a
+    
+    temp = np.zeros_like(x)
+    temp[case1] = k*(x[case1]-a)**m         
+    temp[case3] = k*(-1*x[case3]-a)**m
+    
+    return np.sum(temp, axis=1)
+
+def Shekel(x, m=10):
     if x.ndim==1:
         x = x.reshape(1, -1)
         
@@ -269,68 +291,10 @@ def Shekel_m5(x):
     
     fitness = np.zeros(x.shape[0])
     for i in range(x.shape[0]):
-        for j in range(5):
-            fitness[i] = fitness[i] - 1/(np.dot((x[i, :]-aSH[j, :]), (x[i, :]-aSH[j,:]).T)+cSH[j])
+        for j in range(m):
+            fitness[i] = fitness[i] - 1/(np.sum((x[i, :]-aSH[j, :])**2)+cSH[j])
+    
     return fitness
-
-
-def Shekel_m7(x):
-    if x.ndim==1:
-        x = x.reshape(1, -1)
-        
-    aSH = np.array([[4, 4, 4, 4], 
-                    [1, 1, 1, 1], 
-                    [8, 8, 8, 8],
-                    [6, 6, 6, 6],
-                    [3, 7, 3, 7],
-                    [2, 9, 2, 9],
-                    [5, 5, 3, 3],
-                    [8, 1, 8, 1],
-                    [6, 2, 6, 2],
-                    [7, 3.6, 7, 3.6]])
-    cSH=np.array([.1, .2, .2, .4, .4, .6, .3, .7, .5, .5])
-    
-    fitness = np.zeros(x.shape[0])
-    for i in range(x.shape[0]):    
-        for j in range(7):
-            fitness[i] = fitness[i] - 1/(np.dot((x[i, :]-aSH[j, :]), (x[i, :]-aSH[j,:]).T)+cSH[j])
-    return fitness
-
-def Shekel_m10(x):
-    if x.ndim==1:
-        x = x.reshape(1, -1)
-        
-    aSH = np.array([[4, 4, 4, 4], 
-                    [1, 1, 1, 1], 
-                    [8, 8, 8, 8],
-                    [6, 6, 6, 6],
-                    [3, 7, 3, 7],
-                    [2, 9, 2, 9],
-                    [5, 5, 3, 3],
-                    [8, 1, 8, 1],
-                    [6, 2, 6, 2],
-                    [7, 3.6, 7, 3.6]])
-    cSH=np.array([.1, .2, .2, .4, .4, .6, .3, .7, .5, .5])
-
-    fitness = np.zeros(x.shape[0])
-    for i in range(x.shape[0]):  
-        for j in range(10):
-            fitness[i] = fitness[i] - 1/(np.dot((x[i, :]-aSH[j, :]), (x[i, :]-aSH[j,:]).T)+cSH[j])
-    return fitness
-
-def u_xakm(x, a, k, m):
-    if x.ndim==1:
-        x = x.reshape(1, -1)
-    temp = x.copy()    
-    
-    case1 = x>a
-    case3 = x<-a
-    
-    temp = np.zeros_like(x)
-    temp[case1] = k*(x[case1]-a)**m         
-    temp[case3] = k*(-1*x[case3]-a)**m
-    
-    return temp
 
 
 d = 30
@@ -576,7 +540,7 @@ for i in range(times):
     
     x_max = 5*np.ones(2)
     x_min = -5*np.ones(2)
-    optimizer = APSO(fit_func=Brain,
+    optimizer = APSO(fit_func=Branin,
                     num_dim=2, num_particle=p, max_iter=g, x_max=x_max, x_min=x_min)
     start = time.time()
     optimizer.opt()
