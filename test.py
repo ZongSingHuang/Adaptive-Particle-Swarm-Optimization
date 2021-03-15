@@ -642,6 +642,7 @@ for i in range(times):
 table[:2, :] = table[:2, :] / times
 table[4, :] = np.std(all_for_std, axis=0)
 table = pd.DataFrame(table)
+table = np.round(table, 250)
 table.columns=['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 
                 'F8', 'F9', 'F10', 'F11', 'F12', 
                 'F13', 'F14', 'F15', 'F16', 'F17', 'F18',
@@ -651,11 +652,8 @@ table.index = ['avg', 'time', 'worst', 'best', 'std']
 
 all_for_loss = all_for_loss / times
 all_for_loss = pd.DataFrame(all_for_loss)
+all_for_loss = np.round(all_for_loss, 250)
 all_for_loss.columns=['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 
                       'F8', 'F9', 'F10', 'F11', 'F12', 
                       'F13', 'F14', 'F15', 'F16', 'F17', 'F18',
                       'F19', 'F20', 'F21', 'F22', 'F23']
-ax = all_for_loss.plot(kind='line', grid=True, legend=True)
-ax.set_title('APSO')
-ax.set_xlabel('iteration')
-ax.set_ylabel('fitness value')
